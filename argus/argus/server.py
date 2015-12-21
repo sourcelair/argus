@@ -7,8 +7,8 @@ using WebSocket
 from tornado import ioloop
 from tornado import web
 
-import settings
-from handlers import argushandler
+from argus import settings
+from handler import ArgusWebSocketHandler
 
 
 def make_app():
@@ -17,12 +17,15 @@ def make_app():
     """
     return web.Application(
         [
-            (r'/ws/watch/(?P<path>.+)/?', argushandler.ArgusWebSocketHandler),
+            (r'/ws/watch/(?P<path>.+)/?', ArgusWebSocketHandler),
         ]
     )
 
 
-def main():
+def runserver():
+    """
+    Starts server at ARGUS_ADDRESS:ARGUS_PORT given by the settings.
+    """
     print 'Starting Tornado IO loop at {}:{}'.format(
         settings.ARGUS_ADDRESS, settings.ARGUS_PORT
     )
@@ -35,4 +38,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    runserver()

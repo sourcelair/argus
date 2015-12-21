@@ -1,1 +1,4 @@
 *.pyc
+argus.egg-info
+build
+dist
