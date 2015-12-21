@@ -4,9 +4,11 @@ Argus websocket handler and event handler
 import os
 from re import sub
 from json import dumps
+from tornado import ioloop
 from tornado import websocket
 from watchdog.events import RegexMatchingEventHandler
 from watchdog.observers import Observer
+
 from settings import ARGUS_ROOT
 
 
@@ -90,9 +92,6 @@ class ArgusWebSocketHandler(websocket.WebSocketHandler):
     def check_origin(self, origin):
         return True
 
-    def message_handler(self):
-        self.write_message('ok')
-
     def initiation_handler(self):
         """
         Observers are unique per project.
@@ -139,6 +138,8 @@ class ArgusWebSocketHandler(websocket.WebSocketHandler):
     def open(self, *args, **kwargs):
         self.args = args
         self.kwargs = kwargs
+        self.callback = ioloop.PeriodicCallback(lambda: self.ping(''), 60000)
+        self.callback.start()
         self.initiation_handler()
 
     def on_message(self, message):
@@ -148,6 +149,7 @@ class ArgusWebSocketHandler(websocket.WebSocketHandler):
             self.initiation_handler()
 
     def on_close(self):
+        self.callback.stop()
         if self.started_observer:
             event_handler = active_handlers[self.path]
             event_handler.remove_socket(self)
