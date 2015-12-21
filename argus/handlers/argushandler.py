@@ -94,11 +94,11 @@ class ArgusWebSocketHandler(websocket.WebSocketHandler):
 
     def initiation_handler(self):
         """
-        Observers are unique per project.
-        If an observer already exists for the requested project,
+        Observers are unique per watched path.
+        If an observer already exists for the requested path,
         the new web socket is added in the observer's sockets via the
         handler.
-        In order to achieve this, both the handlers and the observers
+        In order to achieve this, both the handler and the observer objects
         are stored in a global dict.
         """
         self.path = os.path.join(ARGUS_ROOT, self.kwargs.get('path'))
@@ -143,10 +143,10 @@ class ArgusWebSocketHandler(websocket.WebSocketHandler):
         self.initiation_handler()
 
     def on_message(self, message):
-        if self.started_observer:
-            self.message_handler()
-        else:
-            self.initiation_handler()
+        pass
+
+    def data_received(self, chunk):
+        pass
 
     def on_close(self):
         self.callback.stop()
