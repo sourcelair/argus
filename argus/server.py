@@ -11,16 +11,28 @@ import settings
 from handlers import argushandler
 
 
-app = web.Application([
-    (r'/ws/watch/(?P<path>.+)/?', argushandler.ArgusWebSocketHandler)
-])
+def make_app():
+    """
+    Creates tornado application which routes incoming requests to handlers
+    """
+    return web.Application(
+        [
+            (r'/ws/watch/(?P<path>.+)/?', argushandler.ArgusWebSocketHandler),
+        ]
+    )
 
-if __name__ == '__main__':
+
+def main():
     print 'Starting Tornado IO loop at {}:{}'.format(
         settings.ARGUS_ADDRESS, settings.ARGUS_PORT
     )
+    app = make_app()
     app.listen(settings.ARGUS_PORT, settings.ARGUS_ADDRESS)
     try:
-        ioloop.IOLoop.instance().start()
+        ioloop.IOLoop.current().start()
     except KeyboardInterrupt:
         print '\rClosing... (Interrupted by keyboard)'
+
+
+if __name__ == '__main__':
+    main()
