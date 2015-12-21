@@ -7,7 +7,7 @@ from json import dumps
 from tornado import websocket
 from watchdog.events import RegexMatchingEventHandler
 from watchdog.observers import Observer
-from argus.settings import ARGUS_ROOT
+from settings import ARGUS_ROOT
 
 
 active_handlers = {}

@@ -7,8 +7,8 @@ using WebSocket
 from tornado import ioloop
 from tornado import web
 
-from argus import settings
-from argus.handlers import argushandler
+import settings
+from handlers import argushandler
 
 
 app = web.Application([
