@@ -38,16 +38,15 @@ class Argus(RegexMatchingEventHandler):
         )
 
     def on_modified(self, event):
-        if not event.is_directory:
-            self.write_msg(
-                dumps(
-                    {
-                        'event_type': 'modified',
-                        'is_directory': event.is_directory,
-                        'src_path': sub(self.root, '', event.src_path)
-                    }
-                )
+        self.write_msg(
+            dumps(
+                {
+                    'event_type': 'modified',
+                    'is_directory': event.is_directory,
+                    'src_path': sub(self.root, '', event.src_path)
+                }
             )
+        )
 
     def on_deleted(self, event):
         self.write_msg(
