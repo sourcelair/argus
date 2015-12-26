@@ -105,9 +105,6 @@ class ArgusWebSocketHandler(websocket.WebSocketHandler):
             self.write_message('Path does not exist.')
             self.close()
             return
-        blacklist = [
-            self.path + '/hg-check'
-        ]
         if self.path in active_observers:
             event_handler = active_handlers[self.path]
             event_handler.add_socket(self)
@@ -116,7 +113,6 @@ class ArgusWebSocketHandler(websocket.WebSocketHandler):
         else:
             event_handler = Argus(
                 web_socket=self, root=self.path,
-                ignore_regexes=blacklist,
                 case_sensitive=True
             )
             self.observer = Observer()
