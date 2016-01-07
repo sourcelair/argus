@@ -4,6 +4,8 @@ argus-0:
     service: argus
   ports:
     - 5000:5000
+  volumes:
+    - /mnt/data:/data
 
 argus-1:
   extends:
@@ -11,6 +13,8 @@ argus-1:
     service: argus
   ports:
     - 5001:5000
+  volumes_from:
+    - argus-0
 
 argus-2:
   extends:
@@ -18,6 +22,8 @@ argus-2:
     service: argus
   ports:
     - 5002:5000
+  volumes_from:
+    - argus-0
 
 argus-3:
   extends:
@@ -25,3 +31,5 @@ argus-3:
     service: argus
   ports:
     - 5003:5000
+  volumes_from:
+    - argus-0
