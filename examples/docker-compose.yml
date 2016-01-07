@@ -1,0 +1,27 @@
+argus-0:
+  extends:
+    file: docker-compose-base.yml
+    service: argus
+  ports:
+    - 5000:5000
+
+argus-1:
+  extends:
+    file: docker-compose-base.yml
+    service: argus
+  ports:
+    - 5001:5000
+
+argus-2:
+  extends:
+    file: docker-compose-base.yml
+    service: argus
+  ports:
+    - 5002:5000
+
+argus-3:
+  extends:
+    file: docker-compose-base.yml
+    service: argus
+  ports:
+    - 5003:5000

@@ -1,0 +1,4 @@
+argus:
+  build: .
+  command: argus
+  tty: true
