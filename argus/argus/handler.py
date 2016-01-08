@@ -16,6 +16,35 @@ active_handlers = {}
 active_observers = {}
 
 
+def define_options(enable=[], disable=[]):
+    """
+    Define the options for the subscribed events.
+    Valid options:
+        - CRfile: file created
+        - CRdir: directory created
+        - MDfile: file modified
+        - MDdir: directory modified
+        - MVfile: file moved
+        - MVdir: directory moved
+        - DLfile: file deleted
+        - DLdir: directory deleted
+        - all: for disable only. Disables all options.
+    By default all options are enabled.
+    If all options are disabled, 'enable' options are applied.
+    If all options are not disabled, 'disable' options are disabled.
+    """
+    default_options = [
+        'CRfile', 'CRdir', 'MDfile', 'MDdir',
+        'MVfile', 'MVdir', 'DLfile', 'DLdir'
+    ]
+    if disable == enable == []:
+        return default_options
+    elif 'all' in disable:
+        return list(set(enable) & set(default_options))
+    else:
+        return list(set(default_options) - set(disable))
+
+
 class Argus(RegexMatchingEventHandler):
     def __init__(self, web_socket, root, options, *args, **kwargs):
         super(Argus, self).__init__(*args, **kwargs)
@@ -112,18 +141,6 @@ class ArgusWebSocketHandler(websocket.WebSocketHandler):
     def check_origin(self, origin):
         return True
 
-    def define_options(self, enabled=[], disabled=[]):
-        default_options = [
-            'CRfile', 'CRdir', 'MDfile', 'MDdir',
-            'MVfile', 'MVdir', 'DLfile', 'DLdir'
-        ]
-        if disabled == enabled == []:
-            return default_options
-        elif 'all' in disabled:
-            return list(set(enabled) & set(default_options))
-        else:
-            return list(set(default_options) - set(disabled))
-
     def initiation_handler(self):
         """
         Observers are unique per watched path.
@@ -146,7 +163,7 @@ class ArgusWebSocketHandler(websocket.WebSocketHandler):
         else:
             enable = self.get_arguments('enable', strip=True)
             disable = self.get_arguments('disable', strip=True)
-            options = self.define_options(enable, disable)
+            options = define_options(enable, disable)
             if options == []:
                 return
             event_handler = Argus(
