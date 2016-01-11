@@ -16,60 +16,110 @@ active_handlers = {}
 active_observers = {}
 
 
+def define_options(enable=[], disable=[]):
+    """
+    Define the options for the subscribed events.
+    Valid options:
+        - CRfile: file created
+        - CRdir: directory created
+        - MDfile: file modified
+        - MDdir: directory modified
+        - MVfile: file moved
+        - MVdir: directory moved
+        - DLfile: file deleted
+        - DLdir: directory deleted
+        - all: for disable only. Disables all options.
+    By default all options are enabled.
+    If all options are disabled, 'enable' options are applied.
+    If all options are not disabled, 'disable' options are disabled.
+    """
+    default_options = [
+        'CRfile', 'CRdir', 'MDfile', 'MDdir',
+        'MVfile', 'MVdir', 'DLfile', 'DLdir'
+    ]
+    if disable == enable == []:
+        return default_options
+    elif 'all' in disable:
+        return list(set(enable) & set(default_options))
+    else:
+        return list(set(default_options) - set(disable))
+
+
 class Argus(RegexMatchingEventHandler):
-    def __init__(self, web_socket, root, *args, **kwargs):
+    def __init__(self, web_socket, root, options, *args, **kwargs):
         super(Argus, self).__init__(*args, **kwargs)
         self.websockets = [web_socket]
         self.root = root
+        self.options = options
 
     def write_msg(self, message):
         for wbsocket in self.websockets:
             wbsocket.write_message(message)
 
     def on_created(self, event):
-        self.write_msg(
-            dumps(
-                {
-                    'event_type': 'created',
-                    'is_directory': event.is_directory,
-                    'src_path': sub(self.root, '', event.src_path)
-                }
+        is_directory = event.is_directory
+        if (
+                (is_directory and 'CRdir' in self.options) or
+                (not is_directory and 'CRfile' in self.options)
+        ):
+            self.write_msg(
+                dumps(
+                    {
+                        'event_type': 'created',
+                        'is_directory': event.is_directory,
+                        'src_path': sub(self.root, '', event.src_path)
+                    }
+                )
             )
-        )
 
     def on_modified(self, event):
-        self.write_msg(
-            dumps(
-                {
-                    'event_type': 'modified',
-                    'is_directory': event.is_directory,
-                    'src_path': sub(self.root, '', event.src_path)
-                }
+        is_directory = event.is_directory
+        if (
+                (is_directory and 'MDdir' in self.options) or
+                (not is_directory and 'MDfile' in self.options)
+        ):
+            self.write_msg(
+                dumps(
+                    {
+                        'event_type': 'modified',
+                        'is_directory': event.is_directory,
+                        'src_path': sub(self.root, '', event.src_path)
+                    }
+                )
             )
-        )
 
     def on_deleted(self, event):
-        self.write_msg(
-            dumps(
-                {
-                    'event_type': 'deleted',
-                    'is_directory': event.is_directory,
-                    'src_path': sub(self.root, '', event.src_path)
-                }
+        is_directory = event.is_directory
+        if (
+                (is_directory and 'DLdir' in self.options) or
+                (not is_directory and 'DLfile' in self.options)
+        ):
+            self.write_msg(
+                dumps(
+                    {
+                        'event_type': 'deleted',
+                        'is_directory': event.is_directory,
+                        'src_path': sub(self.root, '', event.src_path)
+                    }
+                )
             )
-        )
 
     def on_moved(self, event):
-        self.write_msg(
-            dumps(
-                {
-                    'event_type': 'moved',
-                    'is_directory': event.is_directory,
-                    'src_path': sub(self.root, '', event.src_path),
-                    'dest_path': sub(self.root, '', event.dest_path)
-                }
+        is_directory = event.is_directory
+        if (
+                (is_directory and 'MVdir' in self.options) or
+                (not is_directory and 'MVfile' in self.options)
+        ):
+            self.write_msg(
+                dumps(
+                    {
+                        'event_type': 'moved',
+                        'is_directory': event.is_directory,
+                        'src_path': sub(self.root, '', event.src_path),
+                        'dest_path': sub(self.root, '', event.dest_path)
+                    }
+                )
             )
-        )
 
     def add_socket(self, wbsocket):
         self.websockets.append(wbsocket)
@@ -111,8 +161,13 @@ class ArgusWebSocketHandler(websocket.WebSocketHandler):
             self.observer = active_observers[self.path]
             self.started_observer = True
         else:
+            enable = self.get_arguments('enable', strip=True)
+            disable = self.get_arguments('disable', strip=True)
+            options = define_options(enable, disable)
+            if options == []:
+                return
             event_handler = Argus(
-                web_socket=self, root=self.path,
+                web_socket=self, root=self.path, options=options,
                 case_sensitive=True
             )
             self.observer = Observer()
